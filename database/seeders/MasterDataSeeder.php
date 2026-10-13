@@ -45,13 +45,13 @@ class MasterDataSeeder extends Seeder
         Kelas::create([
             'jurusan_id' => $rpl->id,
             'nama_kelas' => 'XII RPL 1',
-            'tingkat' => '12',
+            'tingkat' => 'XII', // Sesuaikan dengan enum ('X', 'XI', 'XII', 'XIII')
         ]);
-
+        
         Kelas::create([
             'jurusan_id' => $tkj->id,
             'nama_kelas' => 'XII TKJ 1',
-            'tingkat' => '12',
+            'tingkat' => 'XII', // Sesuaikan dengan enum ('X', 'XI', 'XII', 'XIII')
         ]);
     }
 }

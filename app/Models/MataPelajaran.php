@@ -13,4 +13,14 @@ class MataPelajaran extends Model
     protected $table = 'mata_pelajaran';
 
     protected $guarded = ['id'];
+
+    public function jurusan()
+    {
+        return $this->belongsTo(Jurusan::class, 'jurusan_id');
+    }
+
+    public function jadwal()
+    {
+        return $this->hasMany(JadwalPelajaran::class, 'mata_pelajaran_id');
+    }
 }

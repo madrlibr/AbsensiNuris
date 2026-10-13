@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Guru extends Model
 {
     protected $table = 'guru';
+
     protected $fillable = ['user_id', 'nip', 'nama_lengkap', 'no_hp'];
 
     public function user()
@@ -17,5 +18,15 @@ class Guru extends Model
     public function kelasWali()
     {
         return $this->hasOne(Kelas::class, 'wali_kelas_id');
+    }
+
+    public function jadwal()
+    {
+        return $this->hasMany(JadwalPelajaran::class, 'guru_id');
+    }
+
+    public function absensiMapelDicatat()
+    {
+        return $this->hasMany(AbsensiMapel::class, 'dicatat_oleh');
     }
 }

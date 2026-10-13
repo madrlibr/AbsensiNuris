@@ -13,4 +13,19 @@ class AbsensiMapel extends Model
     protected $table = 'absensi_mapel';
 
     protected $guarded = ['id'];
+
+    public function jadwal()
+    {
+        return $this->belongsTo(JadwalPelajaran::class, 'jadwal_pelajaran_id');
+    }
+
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'siswa_id');
+    }
+
+    public function pencatat()
+    {
+        return $this->belongsTo(Guru::class, 'dicatat_oleh');
+    }
 }

@@ -21,23 +21,23 @@
 <body class="bg-[#f8fafc] text-slate-800 antialiased selection:bg-blue-500 selection:text-white">
     <div class="min-h-screen flex">
         
-        <!-- SIDEBAR (WHITE & LIGHT BLUE ACCENT) -->
-        <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between fixed inset-y-0 z-30 shadow-sm">
+        <!-- SIDEBAR (BLUE THEME) -->
+        <aside class="w-64 bg-blue-600 flex flex-col justify-between fixed inset-y-0 z-30 shadow-xl shadow-blue-900/20">
             <div>
                 <!-- Brand Header -->
-                <div class="h-16 px-6 flex items-center justify-between border-b border-slate-100">
+                <div class="h-16 px-5 flex items-center border-b border-white/15">
                     <a href="{{ route('dashboard') }}" class="flex items-center space-x-3">
-                        <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-bold text-white shadow-md shadow-blue-500/20">
+                        <div class="w-9 h-9 rounded-xl bg-blue-700 flex items-center justify-center shadow-inner">
                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 14l9-5-9-5-9 5 9 5z"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
                             </svg>
                         </div>
-                        <span class="text-lg font-extrabold text-slate-800 tracking-tight">TailPanel</span>
+                        <div class="leading-tight">
+                            <span class="block text-sm font-extrabold text-white tracking-tight">SMK NURUL ISLAM</span>
+                            <span class="mt-0.5 inline-flex px-2 py-px rounded-md bg-white/20 text-[10px] font-bold text-white tracking-widest">{{ strtoupper(str_replace('_', ' ', Auth::user()->role)) }}</span>
+                        </div>
                     </a>
-                    <button class="text-slate-400 hover:text-slate-600 md:hidden">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    </button>
                 </div>
 
                 <!-- Navigation Component per Role -->
@@ -64,20 +64,20 @@
             </div>
 
             <!-- Bottom User Profile Card -->
-            <div class="p-3 border-t border-slate-100 bg-slate-50/50">
-                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200/60 transition-all">
+            <div class="p-3 border-t border-white/15 bg-blue-700/50">
+                <div class="flex items-center justify-between p-2 rounded-xl hover:bg-white/10 transition-all">
                     <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-sm">
-                            AS
+                        <div class="w-9 h-9 rounded-full bg-white text-blue-700 font-bold flex items-center justify-center text-xs shadow-sm">
+                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                         </div>
                         <div class="truncate max-w-[110px]">
-                            <p class="text-xs font-bold text-slate-800 truncate">{{ Auth::user()->name }}</p>
-                            <p class="text-[11px] text-slate-400 truncate">{{ Auth::user()->email }}</p>
+                            <p class="text-xs font-bold text-white truncate">{{ Auth::user()->name }}</p>
+                            <p class="text-[11px] text-blue-100 truncate">{{ Auth::user()->email }}</p>
                         </div>
                     </div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="text-slate-400 hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors" title="Logout">
+                        <button type="submit" class="text-blue-100 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors" title="Logout">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                         </button>
                     </form>
@@ -123,11 +123,11 @@
 
                     <div class="flex items-center space-x-2 pl-2">
                         <div class="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs ring-2 ring-blue-500/20">
-                            AS
+                            {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                         </div>
                         <div class="text-left leading-none">
-                            <span class="block text-xs font-bold text-slate-700">Admin User</span>
-                            <span class="text-[10px] text-slate-400">admin@example.com</span>
+                            <span class="block text-xs font-bold text-slate-700">{{ Auth::user()->name }}</span>
+                            <span class="text-[10px] text-slate-400">{{ Auth::user()->email }}</span>
                         </div>
                     </div>
                 </div>
@@ -135,7 +135,11 @@
 
             <!-- PAGE CONTENT -->
             <main class="flex-1 p-8">
-                {{ $slot }}
+                @hasSection('content')
+                    @yield('content')
+                @else
+                    {{ $slot ?? '' }}
+                @endif
             </main>
         </div>
     </div>

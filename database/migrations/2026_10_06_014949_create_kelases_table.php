@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('jurusan_id')->constrained('jurusan')->onDelete('cascade');
             $table->foreignId('wali_kelas_id')->nullable()->constrained('guru')->onDelete('set null');
             $table->string('nama_kelas', 50); // Contoh: "XII RPL 1"
-            $table->enum('tingkat', ['X', 'XI', 'XII', 'XIII']);
+            $table->enum('tingkat', ['X', 'XI', 'XII']);
             $table->timestamps();
         });
     }
@@ -26,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('kelases');
+        Schema::dropIfExists('kelas');
     }
 };
