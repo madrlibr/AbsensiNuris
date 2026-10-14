@@ -39,7 +39,7 @@ $link = fn (...$pola) => request()->routeIs(...$pola) ? $linkAktif : $linkBiasa;
 
     @if(Auth::user()->role === 'piket')
         <p class="px-3 pt-4 pb-2 text-[11px] font-bold tracking-widest text-blue-200/80">GURU PIKET</p>
-        <a href="#" class="{{ $linkBiasa }}">
+        <a href="{{ route('piket.absensi.index') }}" class="{{ $link('piket.*') }}">
             <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             <span>Absensi Gerbang Manual</span>
         </a>

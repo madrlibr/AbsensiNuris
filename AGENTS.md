@@ -9,6 +9,7 @@ Laravel 13 attendance app (Sekolah): students, teachers, classes, schedules, dai
 - `npm run build` / `npm run dev` — Vite only (entries: `resources/css/app.css`, `resources/js/app.js`).
 - `./vendor/bin/pint` — formatter (no composer/npm script for it; run before committing PHP changes).
 - Focused test: `php artisan test --filter=NameOfTest` (e.g. `--filter=ProfileTest`).
+- `php artisan db:seed --class=DummyDataSeeder` — tops up every master table to 100 rows (idempotent). Not in `DatabaseSeeder`; run manually. `pengaturan_absensi` maxes at 6 (one per weekday).
 
 ## Database
 
@@ -20,7 +21,7 @@ Laravel 13 attendance app (Sekolah): students, teachers, classes, schedules, dai
 ## Structure
 
 - `routes/web.php` + `routes/auth.php` (Breeze) — no API routes file.
-- `app/Http/Controllers/Admin/` (Jurusan, Kelas, TahunAjaran, PengaturanAbsensi, Pengguna, Siswa+Guru+Mapel+Jadwal), `DashboardController` (counts for active year + today), `app/Http/Controllers/BK/LaporanController` (rekap + perhatian + detail siswa, route `bk.*` dengan `role:bk`), `app/Http/Controllers/Guru/` (currently empty), `ProfileController` from Breeze.
+- `app/Http/Controllers/Admin/` (Jurusan, Kelas, TahunAjaran, PengaturanAbsensi, Pengguna, Siswa+Guru+Mapel+Jadwal), `DashboardController` (counts for active year + today), `app/Http/Controllers/BK/LaporanController` (rekap + perhatian + detail siswa, route `bk.*` dengan `role:bk`), `app/Http/Controllers/Piket/AbsensiController` (scan QR/RFID/fingerprint + manual, route `piket.*` dengan `role:piket,admin`), `app/Http/Controllers/Guru/` (currently empty), `ProfileController` from Breeze. Scan kamera pakai `html5-qrcode` dari npm (dibundel vite, bukan CDN — aman untuk LAN sekolah offline); endpoint scan dukung JSON untuk auto-submit tanpa reload; kamera butuh secure context (localhost OK, via IP/hostname wajib HTTPS).
 - Views use two conventions (`<x-app-layout>` and `@extends('layouts.app')`) — both work: `layouts/app.blade.php` is a custom sidebar layout that renders `@yield('content')` or falls back to `$slot`. Do not "unify" them.
 - Real nav is `components/sidebars/{admin,guru,orang-tua}.blade.php` (picked by role in the layout); `layouts/navigation.blade.php` is dead Breeze leftover — do not add links there. Sidebar theme is blue (`bg-blue-600` on the aside): active item = `bg-white/20` pill, no left-border tricks.
 - `role` middleware alias (`role:admin`) is registered in `bootstrap/app.php`, implemented in `app/Http/Middleware/CheckRole.php` — not in a Kernel. Supports comma-separated roles (`role:admin,guru`).

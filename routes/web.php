@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use App\Http\Controllers\BK\LaporanController as BKLaporanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Piket\AbsensiController as PiketAbsensiController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -86,6 +87,14 @@ Route::middleware(['auth', 'role:bk'])->prefix('bk')->name('bk.')->group(functio
     // Laporan BK: role guru dengan penugasan bk (lihat users.penugasan)
     Route::get('/laporan', [BKLaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/siswa/{siswa}', [BKLaporanController::class, 'show'])->name('laporan.show');
+});
+
+Route::middleware(['auth', 'role:piket,admin'])->prefix('piket')->name('piket.')->group(function () {
+
+    // Absensi gerbang harian: scan QR/RFID/sidik jari + input manual.
+    Route::get('/absensi', [PiketAbsensiController::class, 'index'])->name('absensi.index');
+    Route::post('/absensi/scan', [PiketAbsensiController::class, 'scan'])->name('absensi.scan');
+    Route::post('/absensi/manual', [PiketAbsensiController::class, 'manual'])->name('absensi.manual');
 });
 
 require __DIR__.'/auth.php';
