@@ -51,7 +51,7 @@ $s = Siswa::firstOrFail();
 $html = (new SiswaController())->show($req('/x'), $s->id)->render();
 echo 'detail: '.(str_contains($html, '<svg') && str_contains($html, 'QR Kartu Pelajar') && str_contains($html, 'Riwayat Absensi Harian') ? 'OK ada QR+riwayat' : 'GAGAL')."\n";
 
-// Feed endpoint
+// Feed endpoints
 $r = Request::create('/x', 'GET', [], [], [], ['HTTP_ACCEPT' => 'application/json']);
 $r->setUserResolver(fn () => $admin);
 $res = (new AbsensiController())->feed($r);
