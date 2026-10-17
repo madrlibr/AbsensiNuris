@@ -168,6 +168,9 @@
                 </tbody>
             </table>
         </div>
+        @if($rekap->hasPages())
+            <div class="px-6 py-4 border-t border-slate-100">{{ $rekap->links() }}</div>
+        @endif
     </div>
 
     <!-- Izin Menunggu Persetujuan -->

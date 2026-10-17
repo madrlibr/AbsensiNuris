@@ -10,12 +10,28 @@ use Illuminate\Validation\Rule;
 
 class MapelController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $mapel = MataPelajaran::with('jurusan')->orderBy('nama_mapel')->get();
+        $filter = $request->validate([
+            'q' => 'nullable|string|max:100',
+            'jurusan_id' => 'nullable|string',
+        ]);
+
+        $q = $filter['q'] ?? null;
+        $jurusanId = $filter['jurusan_id'] ?? null;
+
+        $mapel = MataPelajaran::with('jurusan')
+            ->when($q, fn ($query) => $query->where(
+                fn ($w) => $w->where('kode_mapel', 'like', "%$q%")->orWhere('nama_mapel', 'like', "%$q%")
+            ))
+            ->when($jurusanId === 'umum', fn ($query) => $query->whereNull('jurusan_id'))
+            ->when($jurusanId && $jurusanId !== 'umum', fn ($query) => $query->where('jurusan_id', $jurusanId))
+            ->orderBy('nama_mapel')
+            ->paginate(12)
+            ->withQueryString();
         $jurusan = Jurusan::orderBy('nama_jurusan')->get();
 
-        return view('admin.mapel.index', compact('mapel', 'jurusan'));
+        return view('admin.mapel.index', compact('mapel', 'jurusan', 'q', 'jurusanId'));
     }
 
     public function store(Request $request)

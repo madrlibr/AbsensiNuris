@@ -7,16 +7,22 @@ use App\Http\Controllers\Admin\KelasController;
 use App\Http\Controllers\Admin\MapelController;
 use App\Http\Controllers\Admin\PengaturanAbsensiController;
 use App\Http\Controllers\Admin\PenggunaController;
+use App\Http\Controllers\Admin\RekapController;
 use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\TahunAjaranController;
 use App\Http\Controllers\BK\LaporanController as BKLaporanController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Guru\AbsensiMapelController as GuruAbsensiMapelController;
+use App\Http\Controllers\OrangTua\NotifikasiController as OrtuNotifikasiController;
+use App\Http\Controllers\OrangTua\RiwayatController as OrtuRiwayatController;
+use App\Http\Controllers\OrangTua\SuratIzinController as OrtuSuratIzinController;
 use App\Http\Controllers\Piket\AbsensiController as PiketAbsensiController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\WaliKelas\SuratIzinController as WaliSuratIzinController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return view('auth.login');
 });
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
@@ -56,10 +62,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/pengguna', [PenggunaController::class, 'store'])->name('pengguna.store');
     Route::put('/pengguna/{id}', [PenggunaController::class, 'update'])->name('pengguna.update');
     Route::delete('/pengguna/{id}', [PenggunaController::class, 'destroy'])->name('pengguna.destroy');
+    Route::post('/pengguna/{id}/tautkan-anak', [PenggunaController::class, 'tautkanAnak'])->name('pengguna.tautkan-anak');
+    Route::delete('/pengguna/lepas-anak/{pivotId}', [PenggunaController::class, 'lepasAnak'])->name('pengguna.lepas-anak');
 
     // Siswa + penempatan kelas (anggota_kelas)
     Route::get('/siswa', [SiswaController::class, 'index'])->name('siswa.index');
     Route::post('/siswa', [SiswaController::class, 'store'])->name('siswa.store');
+    Route::get('/siswa/{id}', [SiswaController::class, 'show'])->name('siswa.show');
+    Route::get('/siswa/{id}/kartu', [SiswaController::class, 'kartu'])->name('siswa.kartu');
     Route::put('/siswa/{id}', [SiswaController::class, 'update'])->name('siswa.update');
     Route::delete('/siswa/{id}', [SiswaController::class, 'destroy'])->name('siswa.destroy');
 
@@ -80,6 +90,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/jadwal', [JadwalController::class, 'store'])->name('jadwal.store');
     Route::put('/jadwal/{id}', [JadwalController::class, 'update'])->name('jadwal.update');
     Route::delete('/jadwal/{id}', [JadwalController::class, 'destroy'])->name('jadwal.destroy');
+
+    // Rekap admin
+    Route::get('/rekap-harian', [RekapController::class, 'harian'])->name('rekap.harian');
+    Route::get('/rekap-bulanan', [RekapController::class, 'bulanan'])->name('rekap.bulanan');
+    Route::post('/rekap-auto-alpa', [RekapController::class, 'autoAlpa'])->name('rekap.auto-alpa');
+    Route::post('/rekap-koreksi', [RekapController::class, 'koreksi'])->name('rekap.koreksi');
 });
 
 Route::middleware(['auth', 'role:bk'])->prefix('bk')->name('bk.')->group(function () {
@@ -89,12 +105,41 @@ Route::middleware(['auth', 'role:bk'])->prefix('bk')->name('bk.')->group(functio
     Route::get('/laporan/siswa/{siswa}', [BKLaporanController::class, 'show'])->name('laporan.show');
 });
 
-Route::middleware(['auth', 'role:piket,admin'])->prefix('piket')->name('piket.')->group(function () {
+Route::middleware(['auth', 'role:piket,admin,osis'])->prefix('piket')->name('piket.')->group(function () {
 
     // Absensi gerbang harian: scan QR/RFID/sidik jari + input manual.
     Route::get('/absensi', [PiketAbsensiController::class, 'index'])->name('absensi.index');
+    Route::get('/absensi/feed', [PiketAbsensiController::class, 'feed'])->name('absensi.feed');
     Route::post('/absensi/scan', [PiketAbsensiController::class, 'scan'])->name('absensi.scan');
     Route::post('/absensi/manual', [PiketAbsensiController::class, 'manual'])->name('absensi.manual');
+    // Koreksi status memakai logika yang sama dengan admin.
+    Route::post('/koreksi-absensi', [RekapController::class, 'koreksi'])->name('koreksi');
+});
+
+Route::middleware(['auth', 'role:wali_kelas,admin'])->prefix('wali-kelas')->name('walikelas.')->group(function () {
+
+    // Persetujuan surat izin oleh wali kelas (guru yang ditunjuk) atau admin.
+    Route::get('/surat-izin', [WaliSuratIzinController::class, 'index'])->name('surat-izin.index');
+    Route::patch('/surat-izin/{id}/setujui', [WaliSuratIzinController::class, 'setujui'])->name('surat-izin.setujui');
+    Route::patch('/surat-izin/{id}/tolak', [WaliSuratIzinController::class, 'tolak'])->name('surat-izin.tolak');
+});
+
+Route::middleware(['auth', 'role:guru,admin'])->prefix('guru')->name('guru.')->group(function () {
+
+    // Absensi per mapel oleh guru pengampu (admin bebas mengisi).
+    Route::get('/absensi-mapel', [GuruAbsensiMapelController::class, 'index'])->name('absensi-mapel.index');
+    Route::get('/absensi-mapel/jadwal/{jadwal}', [GuruAbsensiMapelController::class, 'form'])->name('absensi-mapel.form');
+    Route::post('/absensi-mapel/jadwal/{jadwal}', [GuruAbsensiMapelController::class, 'simpan'])->name('absensi-mapel.simpan');
+});
+
+Route::middleware(['auth', 'role:orang_tua'])->prefix('orang-tua')->name('orangtua.')->group(function () {
+    // Portal orang tua: notifikasi aplikasi + riwayat + ajukan surat izin.
+    Route::get('/notifikasi', [OrtuNotifikasiController::class, 'index'])->name('notifikasi.index');
+    Route::patch('/notifikasi/baca-semua', [OrtuNotifikasiController::class, 'bacaSemua'])->name('notifikasi.baca-semua');
+    Route::patch('/notifikasi/{id}/baca', [OrtuNotifikasiController::class, 'baca'])->name('notifikasi.baca');
+    Route::get('/riwayat', [OrtuRiwayatController::class, 'index'])->name('riwayat.index');
+    Route::get('/surat-izin', [OrtuSuratIzinController::class, 'index'])->name('surat-izin.index');
+    Route::post('/surat-izin', [OrtuSuratIzinController::class, 'store'])->name('surat-izin.store');
 });
 
 require __DIR__.'/auth.php';

@@ -12,8 +12,6 @@ class siswa_pindahanSeeder extends Seeder
      */
     public function run(): void
     {
-        siswa_pindahan::create([
-
-        ]);
+        
     }
 }

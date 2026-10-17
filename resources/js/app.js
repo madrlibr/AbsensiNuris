@@ -48,17 +48,27 @@ function initQrScanner() {
 
     const badgeStatus = (status) => {
         const warna = status === 'hadir' ? 'bg-emerald-500' : (status === 'terlambat' ? 'bg-amber-500' : 'bg-slate-500');
-        return `<p class="mt-3 inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold capitalize ${warna} text-white">${status}</p>`;
+        return `<span class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-extrabold capitalize ${warna} text-white">${status}</span>`;
     };
+
+    const inisial = (nama) => (nama || '').split(' ').slice(0, 2).map((w) => (w.charAt(0) || '').toUpperCase()).join('');
 
     const tampilHasil = (h) => {
         if (!hasilEl) return;
+        var foto = h.foto
+            ? `<img src="${h.foto}" alt="Foto ${h.nama}" class="w-20 h-20 rounded-3xl object-cover shadow-md shrink-0">`
+            : `<div class="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-500 text-white text-2xl font-extrabold flex items-center justify-center shadow-md shrink-0">${inisial(h.nama)}</div>`;
         hasilEl.innerHTML = `
-            <div class="rounded-2xl border p-5 text-center ${h.status === 'alpa' ? 'bg-rose-50 border-rose-200' : 'bg-emerald-50 border-emerald-200'}">
-                <p class="text-lg font-bold text-slate-800">${h.nama}</p>
-                <p class="text-xs font-medium text-slate-500">${h.nisn} · ${h.kelas}</p>
-                ${badgeStatus(h.status)}
-                <p class="mt-2 text-xs font-bold text-slate-500 uppercase tracking-wider">Absen ${h.tipe} · ${h.jam}</p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                ${foto}
+                <div class="min-w-0 flex-1">
+                    <p class="text-lg font-extrabold text-slate-800 tracking-tight">${h.nama}</p>
+                    <p class="text-[11px] font-semibold text-slate-400">NISN ${h.nisn} · ${h.kelas}</p>
+                    <div class="mt-2.5 flex flex-wrap items-center gap-2">
+                        ${badgeStatus(h.status)}
+                        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Absen ${h.tipe} · ${h.jam}</span>
+                    </div>
+                </div>
             </div>`;
     };
 

@@ -8,6 +8,7 @@ use App\Models\JadwalPelajaran;
 use App\Models\Jurusan;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
+use App\Models\OrangTuaSiswa;
 use App\Models\PengaturanAbsensi;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
@@ -37,6 +38,7 @@ class DummyDataSeeder extends Seeder
         $this->topUpMapel();
         JadwalPelajaran::factory()->count($this->kurang(JadwalPelajaran::class))->create();
         $this->lengkapiPengaturan();
+        $this->tautkanAnakOrtu();
     }
 
     private function kurang(string $model): int
@@ -166,6 +168,23 @@ class DummyDataSeeder extends Seeder
                 'durasi_absensi_pulang' => 60,
                 'is_aktif' => true,
             ]);
+        }
+    }
+
+    private function tautkanAnakOrtu(): void
+    {
+        $siswa = Siswa::pluck('id');
+        if ($siswa->isEmpty()) {
+            return;
+        }
+
+        foreach (User::where('role', 'orang_tua')->whereDoesntHave('orangTuaSiswa')->cursor() as $ortu) {
+            foreach ($siswa->random(min(2, $siswa->count())) as $siswaId) {
+                OrangTuaSiswa::firstOrCreate(
+                    ['user_id' => $ortu->id, 'siswa_id' => $siswaId],
+                    ['hubungan' => fake()->randomElement(['ayah', 'ibu', 'wali'])]
+                );
+            }
         }
     }
 }

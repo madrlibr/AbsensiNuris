@@ -7,6 +7,7 @@ use App\Models\AbsensiHarian;
 use App\Models\PengaturanAbsensi;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use App\Services\NotifikasiOrtu;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -81,6 +82,9 @@ class AbsensiController extends Controller
 
     public function manual(Request $request)
     {
+        // OSIS hanya boleh scan; input manual khusus piket/admin.
+        abort_if($request->user()->role === 'osis', 403, 'Hanya piket yang boleh input manual.');
+
         $data = $request->validate([
             'siswa_id' => 'required|exists:siswa,id',
             'tipe' => 'required|in:masuk,pulang',
@@ -90,6 +94,32 @@ class AbsensiController extends Controller
         [$ok, $pesan, $hasil] = $this->catat(Siswa::findOrFail($data['siswa_id']), 'manual', $data['keterangan'], $data['tipe']);
 
         return redirect()->back()->with($ok ? 'hasil' : 'error', $ok ? $hasil : $pesan);
+    }
+
+    /**
+     * Umpan JSON untuk live feed (dipolling halaman gerbang tiap 10 detik).
+     */
+    public function feed(Request $request)
+    {
+        $tahunAktif = TahunAjaran::where('is_aktif', true)->first();
+
+        $log = $tahunAktif
+            ? AbsensiHarian::with(['siswa', 'siswa.anggotaKelas.kelas'])
+                ->where('tahun_ajaran_id', $tahunAktif->id)
+                ->where('tanggal', now()->toDateString())
+                ->latest('updated_at')
+                ->limit(12)
+                ->get()
+                ->map(fn ($a) => [
+                    'nama' => $a->siswa->nama_lengkap,
+                    'kelas' => $a->siswa->anggotaKelas->first()?->kelas?->nama_kelas ?? '-',
+                    'status' => $a->status,
+                    'jam' => substr($a->jam_pulang ?: $a->jam_masuk ?: '', 0, 5),
+                    'foto' => $a->siswa->foto ? asset($a->siswa->foto) : null,
+                ])
+            : [];
+
+        return response()->json(['log' => $log]);
     }
 
     private function statistikHarian(?TahunAjaran $tahunAktif, string $hariIni): array
@@ -171,6 +201,8 @@ class AbsensiController extends Controller
             }
             $absen->save();
 
+            NotifikasiOrtu::catat($siswa->id, $hariIni, "Ananda {$siswa->nama_lengkap} pulang pukul ".substr($sekarang, 0, 5).'.');
+
             return [true, '', $this->hasil($siswa, 'pulang', $absen->status, $sekarang)];
         }
 
@@ -192,6 +224,8 @@ class AbsensiController extends Controller
         $absen->keterangan = $keterangan;
         $absen->save();
 
+        NotifikasiOrtu::catat($siswa->id, $hariIni, "Ananda {$siswa->nama_lengkap} tercatat {$status} pukul ".substr($sekarang, 0, 5).'.');
+
         return [true, '', $this->hasil($siswa, 'masuk', $status, $sekarang)];
     }
 
@@ -206,6 +240,7 @@ class AbsensiController extends Controller
             'tipe' => $tipe,
             'status' => $status,
             'jam' => substr($jam, 0, 5),
+            'foto' => $siswa->foto ? asset($siswa->foto) : null,
         ];
     }
 }

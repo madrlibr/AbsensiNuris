@@ -67,6 +67,32 @@
         </div>
     @endif
 
+    <!-- Filter -->
+    <div class="bg-white rounded-2xl border border-slate-200/70 shadow-2xs p-4 mb-6">
+        <form action="{{ route('admin.mapel.index') }}" method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+            <div class="sm:col-span-2">
+                <label class="block text-xs font-bold text-slate-600 mb-1">Cari kode / nama</label>
+                <input type="text" name="q" value="{{ $q }}" placeholder="Contoh: MTK" class="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Jurusan</label>
+                <select name="jurusan_id" class="w-full px-3.5 py-2 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    <option value="">Semua</option>
+                    <option value="umum" @selected($jurusanId === 'umum')>Mapel Umum</option>
+                    @foreach($jurusan as $j)
+                        <option value="{{ $j->id }}" @selected($jurusanId == $j->id)>{{ $j->nama_jurusan }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors">Tampilkan</button>
+                @if($q || $jurusanId)
+                    <a href="{{ route('admin.mapel.index') }}" class="px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">Reset</a>
+                @endif
+            </div>
+        </form>
+    </div>
+
     <!-- Tabel Data Mapel -->
     <div class="bg-white rounded-2xl border border-slate-200/70 shadow-2xs overflow-hidden">
         <div class="overflow-x-auto">
@@ -138,4 +164,7 @@
             </table>
         </div>
     </div>
+    @if($mapel->hasPages())
+        <div class="mt-4">{{ $mapel->links() }}</div>
+    @endif
 </x-app-layout>

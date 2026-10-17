@@ -23,4 +23,9 @@ class AbsensiHarian extends Model
     {
         return $this->belongsTo(TahunAjaran::class, 'tahun_ajaran_id');
     }
+
+    public function korektor()
+    {
+        return $this->belongsTo(User::class, 'dikoreksi_oleh');
+    }
 }

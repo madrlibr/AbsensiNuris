@@ -40,21 +40,25 @@ class LaporanController extends Controller
                 ->whereBetween('tanggal', [$dari, $sampai]);
         }
 
-        $rekap = Siswa::query()
+        $dasar = fn () => Siswa::query()
             ->whereHas('anggotaKelas', fn ($q) => $q
                 ->where('tahun_ajaran_id', $tahunAjaranId)
                 ->when($kelasId, fn ($q) => $q->where('kelas_id', $kelasId)))
             ->with(['anggotaKelas' => fn ($q) => $q->where('tahun_ajaran_id', $tahunAjaranId), 'anggotaKelas.kelas'])
             ->withCount($counts)
-            ->orderBy('nama_lengkap')
-            ->get();
+            ->orderBy('nama_lengkap');
+
+        // Agregat dihitung dari seluruh filter; tabelnya dipaginasi.
+        $semua = $dasar()->get();
+
+        $rekap = $dasar()->paginate(15)->withQueryString();
 
         // Siswa perhatian BK: alpa mencapai batas dalam periode.
-        $perhatian = $rekap->filter(fn ($s) => $s->alpa_count >= $batasAlpa)->values();
+        $perhatian = $semua->filter(fn ($s) => $s->alpa_count >= $batasAlpa)->values();
 
-        $ringkasan = ['total_siswa' => $rekap->count(), 'total_hadir' => $rekap->sum('total_hadir')];
+        $ringkasan = ['total_siswa' => $semua->count(), 'total_hadir' => $semua->sum('total_hadir')];
         foreach (self::STATUS as $status) {
-            $ringkasan[$status] = $rekap->sum("{$status}_count");
+            $ringkasan[$status] = $semua->sum("{$status}_count");
         }
 
         $izinPending = SuratIzin::with('siswa')

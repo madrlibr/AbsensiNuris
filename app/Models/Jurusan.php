@@ -17,4 +17,9 @@ class Jurusan extends Model
     {
         return $this->hasMany(Kelas::class, 'jurusan_id');
     }
+
+    public function mapel()
+    {
+        return $this->hasMany(MataPelajaran::class, 'jurusan_id');
+    }
 }

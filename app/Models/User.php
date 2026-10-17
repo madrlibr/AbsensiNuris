@@ -28,6 +28,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Anak yang tertaut ke akun orang tua ini.
+     */
+    public function anak()
+    {
+        return $this->belongsToMany(Siswa::class, 'orang_tua_siswa', 'user_id', 'siswa_id')
+            ->withPivot('hubungan')
+            ->withTimestamps();
+    }
+
+    /**
      * Cek penugasan khusus, mis. bertugasSebagai('bk').
      * Role tetap (mis. guru), penugasan menambah hak akses halaman tugas.
      * Perbandingan case-insensitive agar 'BK'/'Bk' tetap dikenali.
@@ -35,6 +45,15 @@ class User extends Authenticatable
     public function bertugasSebagai(string $tugas): bool
     {
         return strtolower(trim($this->penugasan ?? '')) === strtolower($tugas);
+    }
+
+    /**
+     * Wali kelas = role wali_kelas ATAU guru yang ditunjuk di suatu kelas.
+     */
+    public function isWaliKelas(): bool
+    {
+        return $this->role === 'wali_kelas'
+            || ($this->guru && $this->guru->kelasWali()->exists());
     }
 
     /**

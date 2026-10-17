@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrangTuaSiswa;
+use App\Models\Siswa;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,15 +12,33 @@ use Illuminate\Validation\Rule;
 
 class PenggunaController extends Controller
 {
-    public const ROLES = ['admin', 'guru', 'wali_kelas', 'piket', 'orang_tua'];
+    public const ROLES = ['admin', 'guru', 'wali_kelas', 'piket', 'orang_tua', 'osis'];
 
     public const PENUGASAN = ['bk'];
 
-    public function index()
+    public function index(Request $request)
     {
-        $pengguna = User::with('guru')->latest()->get();
+        $filter = $request->validate([
+            'q' => 'nullable|string|max:100',
+            'role' => ['nullable', Rule::in(self::ROLES)],
+        ]);
 
-        return view('admin.pengguna.index', compact('pengguna'));
+        $q = $filter['q'] ?? null;
+        $roleAktif = $filter['role'] ?? null;
+
+        $pengguna = User::with(['guru', 'orangTuaSiswa.siswa'])
+            ->when($q, fn ($query) => $query->where(
+                fn ($w) => $w->where('name', 'like', "%$q%")
+                    ->orWhere('username', 'like', "%$q%")
+                    ->orWhere('email', 'like', "%$q%")
+            ))
+            ->when($roleAktif, fn ($query) => $query->where('role', $roleAktif))
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+        $semuaSiswa = Siswa::orderBy('nama_lengkap')->get(['id', 'nisn', 'nama_lengkap']);
+
+        return view('admin.pengguna.index', compact('pengguna', 'semuaSiswa', 'q', 'roleAktif'));
     }
 
     public function store(Request $request)
@@ -79,5 +99,48 @@ class PenggunaController extends Controller
         $user->delete();
 
         return redirect()->back()->with('success', 'Pengguna berhasil dihapus.');
+    }
+
+    /**
+     * Tautkan akun orang tua ke seorang siswa.
+     */
+    public function tautkanAnak(Request $request, $id)
+    {
+        $ortu = User::findOrFail($id);
+
+        if ($ortu->role !== 'orang_tua') {
+            return redirect()->back()->with('error', 'Hanya akun orang tua yang bisa ditautkan ke siswa.');
+        }
+
+        $data = $request->validate([
+            'siswa_id' => 'required|exists:siswa,id',
+            'hubungan' => 'nullable|string|max:20',
+        ]);
+
+        $sudah = OrangTuaSiswa::where('user_id', $ortu->id)
+            ->where('siswa_id', $data['siswa_id'])
+            ->exists();
+
+        if ($sudah) {
+            return redirect()->back()->with('error', 'Siswa tersebut sudah tertaut ke akun ini.');
+        }
+
+        OrangTuaSiswa::create([
+            'user_id' => $ortu->id,
+            'siswa_id' => $data['siswa_id'],
+            'hubungan' => $data['hubungan'] ?: null,
+        ]);
+
+        return redirect()->back()->with('success', 'Anak berhasil ditautkan ke akun orang tua.');
+    }
+
+    /**
+     * Lepas tautan akun orang tua - siswa.
+     */
+    public function lepasAnak($pivotId)
+    {
+        OrangTuaSiswa::findOrFail($pivotId)->delete();
+
+        return redirect()->back()->with('success', 'Tautan anak berhasil dilepas.');
     }
 }

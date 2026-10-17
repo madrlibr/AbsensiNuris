@@ -11,7 +11,7 @@ class Siswa extends Model
 
     protected $table = 'siswa';
 
-    protected $fillable = ['nisn', 'nama_lengkap', 'jenis_kelamin', 'no_hp_ortu', 'qr_code', 'card_number', 'fingerprint_id'];
+    protected $fillable = ['nisn', 'nama_lengkap', 'jenis_kelamin', 'no_hp_ortu', 'qr_code', 'card_number', 'fingerprint_id', 'foto'];
 
     public function anggotaKelas()
     {

@@ -10,7 +10,8 @@ class CheckRole
 {
     /**
      * Contoh: 'role:admin' (role persis), 'role:admin,guru' (salah satu role),
-     * 'role:bk' (user dengan penugasan bk, biasanya role guru).
+     * 'role:bk' (user dengan penugasan bk, biasanya role guru),
+     * 'role:wali_kelas' (role wali_kelas ATAU guru yang ditunjuk jadi wali).
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
@@ -24,6 +25,11 @@ class CheckRole
 
                 // 'bk' bukan role, melainkan penugasan pada user (mis. role guru + penugasan bk).
                 if ($role === 'bk' && $user->bertugasSebagai('bk')) {
+                    return $next($request);
+                }
+
+                // Wali kelas dilihat dari penunjukan di tabel kelas, bukan sekadar role.
+                if ($role === 'wali_kelas' && $user->isWaliKelas()) {
                     return $next($request);
                 }
             }

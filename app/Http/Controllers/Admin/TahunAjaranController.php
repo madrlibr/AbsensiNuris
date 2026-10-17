@@ -5,20 +5,29 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TahunAjaranController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tahunAjaran = TahunAjaran::latest()->get();
+        $q = $request->validate(['q' => 'nullable|string|max:100'])['q'] ?? null;
 
-        return view('admin.tahun_ajaran.index', compact('tahunAjaran'));
+        $tahunAjaran = TahunAjaran::when($q, fn ($query) => $query->where('tahun', 'like', "%$q%"))
+            ->latest()
+            ->paginate(12)
+            ->withQueryString();
+
+        return view('admin.tahun_ajaran.index', compact('tahunAjaran', 'q'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'tahun' => 'required|string|max:20',
+            'tahun' => [
+                'required', 'string', 'max:20',
+                Rule::unique('tahun_ajaran', 'tahun')->where(fn ($q) => $q->where('semester', $request->semester)),
+            ],
             'semester' => 'required|in:1,2',
         ]);
 
