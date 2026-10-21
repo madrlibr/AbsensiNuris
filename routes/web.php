@@ -16,6 +16,7 @@ use App\Http\Controllers\Guru\AbsensiMapelController as GuruAbsensiMapelControll
 use App\Http\Controllers\OrangTua\NotifikasiController as OrtuNotifikasiController;
 use App\Http\Controllers\OrangTua\RiwayatController as OrtuRiwayatController;
 use App\Http\Controllers\OrangTua\SuratIzinController as OrtuSuratIzinController;
+use App\Http\Controllers\OsisController;
 use App\Http\Controllers\Piket\AbsensiController as PiketAbsensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WaliKelas\SuratIzinController as WaliSuratIzinController;
@@ -114,6 +115,12 @@ Route::middleware(['auth', 'role:piket,admin,osis'])->prefix('piket')->name('pik
     Route::post('/absensi/manual', [PiketAbsensiController::class, 'manual'])->name('absensi.manual');
     // Koreksi status memakai logika yang sama dengan admin.
     Route::post('/koreksi-absensi', [RekapController::class, 'koreksi'])->name('koreksi');
+});
+
+Route::middleware(['auth', 'role:osis'])->prefix('osis')->name('osis.')->group(function () {
+
+    // Dashboard OSIS: ringkasan absensi gerbang hari ini + jalan pintas ke scan.
+    Route::get('/dashboard', [OsisController::class, 'index'])->name('dashboard');
 });
 
 Route::middleware(['auth', 'role:wali_kelas,admin'])->prefix('wali-kelas')->name('walikelas.')->group(function () {

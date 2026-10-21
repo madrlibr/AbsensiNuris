@@ -8,6 +8,7 @@ use App\Models\PengaturanAbsensi;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Services\NotifikasiOrtu;
+use App\Services\StatistikAbsensiHarian;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -18,6 +19,10 @@ class AbsensiController extends Controller
      * Pulang manual operator selalu dicatat tanpa jeda.
      */
     private const JEDA_PULANG_MENIT = 10;
+
+    public function __construct(
+        private readonly StatistikAbsensiHarian $statistikAbsensi,
+    ) {}
 
     private const HARI = [
         'Monday' => 'Senin',
@@ -33,7 +38,7 @@ class AbsensiController extends Controller
     {
         $tahunAktif = TahunAjaran::where('is_aktif', true)->first();
         $hariIni = now()->toDateString();
-        $statistik = $this->statistikHarian($tahunAktif, $hariIni);
+        $statistik = $this->statistikAbsensi->hitung($tahunAktif, $hariIni);
 
         $daftarSiswa = $tahunAktif
             ? Siswa::whereHas('anggotaKelas', fn ($q) => $q->where('tahun_ajaran_id', $tahunAktif->id))
@@ -70,7 +75,7 @@ class AbsensiController extends Controller
                 'ok' => $ok,
                 'hasil' => $hasil,
                 'error' => $ok ? null : $pesan,
-                'statistik' => $this->statistikHarian(
+                'statistik' => $this->statistikAbsensi->hitung(
                     TahunAjaran::where('is_aktif', true)->first(),
                     now()->toDateString()
                 ),
@@ -120,32 +125,6 @@ class AbsensiController extends Controller
             : [];
 
         return response()->json(['log' => $log]);
-    }
-
-    private function statistikHarian(?TahunAjaran $tahunAktif, string $hariIni): array
-    {
-        $statistik = ['hadir' => 0, 'terlambat' => 0, 'izin' => 0, 'sakit' => 0, 'alpa' => 0, 'total_siswa' => 0, 'sudah_absen' => 0];
-
-        if ($tahunAktif) {
-            $statistik['total_siswa'] = Siswa::whereHas('anggotaKelas', fn ($q) => $q->where('tahun_ajaran_id', $tahunAktif->id))->count();
-
-            $cacah = AbsensiHarian::where('tahun_ajaran_id', $tahunAktif->id)
-                ->where('tanggal', $hariIni)
-                ->selectRaw('status, COUNT(*) as total')
-                ->groupBy('status')
-                ->pluck('total', 'status');
-
-            foreach (['hadir', 'terlambat', 'izin', 'sakit', 'alpa'] as $status) {
-                $statistik[$status] = $cacah[$status] ?? 0;
-            }
-
-            $statistik['sudah_absen'] = AbsensiHarian::where('tahun_ajaran_id', $tahunAktif->id)
-                ->where('tanggal', $hariIni)
-                ->distinct('siswa_id')
-                ->count('siswa_id');
-        }
-
-        return $statistik;
     }
 
     /**

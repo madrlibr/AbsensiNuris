@@ -13,7 +13,7 @@ Laravel 13 attendance app (Sekolah): students, teachers, classes, schedules, dai
 - `php artisan db:seed --class=RealisticSeeder` — small realistic Indonesian school dataset (3 jurusan, 9 kelas, 9 guru, 28 siswa, 14 mapel, 180 jadwal, role accounts with `password123`). Run on an EMPTY database; the two seeders are alternatives, never chained.
 - `php artisan absensi:auto-alpa [--tanggal=YYYY-MM-DD] [--force]` — marks missing records alpa (approved letters become izin/sakit). Scheduled nightly 23:30 Asia/Jakarta via `routes/console.php`; app timezone stays UTC so the schedule pins `->timezone('Asia/Jakarta')`. Same logic callable from admin via `App\Services\AutoAlpa::jalankan()`.
 - Manual corrections go through `RekapController@koreksi` (`admin.rekap.koreksi` + `piket.koreksi`): creates-or-updates the daily record, requires a reason, stamps `absensi_harian.dikoreksi_oleh` (relation `AbsensiHarian::korektor()`).
-- OSIS (`role=osis`) operates the gate scan page alongside piket/admin, but scan-only: manual entry and koreksi are hidden in the view AND rejected server-side (403). OSIS sidebar has just Dashboard + Scan Gerbang.
+- OSIS (`role=osis`) operates the gate scan page alongside piket/admin, but scan-only: manual entry and koreksi are hidden in the view AND rejected server-side (403). OSIS sidebar has just Dashboard + Scan Gerbang. The OSIS Dashboard is `osis.dashboard` (`OsisController@index`, `osis.*` routes) — stats come from the shared `App\Services\StatistikAbsensiHarian` service (also used by the gate page); the live feed reuses the `piket.absensi.feed` JSON endpoint.
 
 ## Database
 

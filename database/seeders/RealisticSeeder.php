@@ -148,6 +148,11 @@ class RealisticSeeder extends Seeder
             'password' => Hash::make('password123'), 'role' => 'piket',
         ]);
 
+        User::create([
+            'name' => 'Pengurus OSIS', 'username' => 'osis', 'email' => 'osis@smknuris.sch.id',
+            'password' => Hash::make('password123'), 'role' => 'osis',
+        ]);
+
         return $keluar;
     }
 
