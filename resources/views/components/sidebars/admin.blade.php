@@ -46,11 +46,29 @@
                 </x-slot:icon>
                 Data Guru
             </x-sidebar.link>
+            
             <x-sidebar.link :href="route('admin.siswa.index')" :active="request()->routeIs('admin.siswa.*')">
                 <x-slot:icon>
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0112 20.055a11.952 11.952 0 01-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                    </svg>
                 </x-slot:icon>
                 Data Siswa
+            </x-sidebar.link>
+
+            {{-- Menu Hari Libur --}}
+            <x-sidebar.link
+                :href="route('admin.hari-libur.index')"
+                :active="request()->routeIs('admin.hari-libur.*')">
+            
+                <x-slot:icon>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 2v4m8-4v4M3 10h18M5 4h14a2 2 0 012 2v14H3V6a2 2 0 012-2z"/>
+                    </svg>
+                </x-slot:icon>
+                Hari Libur
             </x-sidebar.link>
         </div>
     </div>

@@ -41,6 +41,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('/tahun-ajaran', [TahunAjaranController::class, 'store'])->name('tahun-ajaran.store');
     Route::patch('/tahun-ajaran/{id}/aktif', [TahunAjaranController::class, 'setAktif'])->name('tahun-ajaran.set-aktif');
     Route::delete('/tahun-ajaran/{id}', [TahunAjaranController::class, 'destroy'])->name('tahun-ajaran.destroy');
+    
+        // Hari Libur
+    Route::get('/hari-libur', [\App\Http\Controllers\Admin\HariLiburController::class, 'index'])
+        ->name('hari-libur.index');
+
+    Route::post('/hari-libur', [\App\Http\Controllers\Admin\HariLiburController::class, 'store'])
+        ->name('hari-libur.store');
+
+    Route::put('/hari-libur/{id}', [\App\Http\Controllers\Admin\HariLiburController::class, 'update'])
+        ->name('hari-libur.update');
+
+    Route::delete('/hari-libur/{id}', [\App\Http\Controllers\Admin\HariLiburController::class, 'destroy'])
+        ->name('hari-libur.destroy');
 
     // Pengaturan Jam Absensi
     Route::get('/pengaturan-absensi', [PengaturanAbsensiController::class, 'index'])->name('pengaturan-absensi.index');
